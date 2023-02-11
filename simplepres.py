@@ -1,10 +1,11 @@
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (QApplication, QColorDialog, QFileDialog, QGraphicsView,  
-                               QGraphicsScene, QGraphicsItem)
+                               QGraphicsScene, QGraphicsItem, QMessageBox)
 from PySide6.QtGui import QBrush, QPainter, QPainterPath, QPen, QPixmap
 from PySide6.QtPdf import QPdfDocument
 
 import argparse
+import os
 import sys
 
 DEFAULT_COLOR = Qt.black
@@ -43,37 +44,7 @@ class MyItem(QGraphicsItem):
 
     def moveTo(self, point):
         self.path.moveTo(point)
-        #self.update()
-
-class MyPath(QPainterPath):
-    def __init__(self, color, thickness):
-        super().__init__()
-        #self.path = path
-        self.color = color
-        self.thickness = thickness
-
-    def boundingRect(self):
-        return self.path.boundingRect()
-
-    def paint(self, painter, option, widget):
-        painter.setPen(QPen(self.color, self.thickness))
-        painter.drawPath(self.path)
-
-    def mousePressEvent(self, event):
-        print('mpe')
-        self.setCursor(Qt.ClosedHandCursor)
-
-    def mouseMoveEvent(self, event):
-        print('mme')
-        self.setPos(self.pos() + event.scenePos() - event.lastScenePos())
-
-    def mouseReleaseEvent(self, event):
-        print('mre')
-        self.setCursor(Qt.ArrowCursor)
-
-    def lineTo(self, point):
-        super().lineTo(point)
-        #self.update()        
+        #self.update()     
 
 # class to hold page and lines
 class Page:
@@ -112,8 +83,9 @@ class MyGraphicsView(QGraphicsView):
 
     # remove all paths from the scene
     def clear_paths(self):
+        #self.scene().clear()
         for item in self.scene().items():
-            if isinstance(item, MyItem):
+        #    if isinstance(item, MyItem):
                 self.scene().removeItem(item)
 
     # save page items
@@ -122,6 +94,7 @@ class MyGraphicsView(QGraphicsView):
 
     # load page items
     def load_page_items(self):
+
         if self.page_number in self.page_items:
             for item in self.page_items[self.page_number]:
                 self.scene().addItem(item)
@@ -182,7 +155,6 @@ class MyGraphicsView(QGraphicsView):
             # If no item was clicked, start drawing a line
             start = self.mapToScene(x, y)#event.position())
             ##self.path = QPainterPath(start)
-            ##self.path = MyPath(DEFAULT_COLOR, DEFAULT_THICKNESS)
             self.path = MyItem(start, DEFAULT_COLOR, DEFAULT_THICKNESS)
             #self.path.moveTo(start)
             ##self.prev_path = self.scene().addPath(self.path)
@@ -278,10 +250,33 @@ class MyGraphicsView(QGraphicsView):
         # show previous page when p is pressed or left arrow
         elif event.key() == Qt.Key_Left or event.key() == Qt.Key_P:
             self.prev_page()
+        # show a help dialog when h is pressed
+        elif event.key() == Qt.Key_H:
+            self.help_dialog()
+
     # reset d_pressed when key is released
     def keyReleaseEvent(self, event):
         if event.key() == Qt.Key_D:
             self.d_pressed = False
+
+    def help_dialog(self):
+        msg = QMessageBox()
+        msg.setIcon(QMessageBox.Information)
+        msg.setText("Help")
+        msg.setInformativeText("""q: quit
+c: change color
++/-: change line thickness
+d: delete item under mouse
+n: next page
+p: previous page
+h: help
+        """)
+        msg.setWindowTitle("Help")
+        msg.setStandardButtons(QMessageBox.Ok)
+        msg.exec()
+
+
+
 
 def main(args):
     # use argparse to get the pdf filename
@@ -290,7 +285,7 @@ def main(args):
 
     parser.add_argument('pdf_filename', help='pdf filename', nargs='?')
     args = parser.parse_args()
-    if args.pdf_filename:
+    if args.pdf_filename and os.path.exists(args.pdf_filename):
         filename = args.pdf_filename
     else:
         filename = None

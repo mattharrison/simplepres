@@ -12,7 +12,7 @@ This is a PDF drawing tool that allows the user to add annotations and drawings 
 The code takes in a PDF file name as a command line argument. To run the code, execute the following command in your terminal:
 
 ```
-python3 filename.py -f your_pdf_file.pdf
+python3 simplepres.py your_pdf_file.pdf
 ```
 
 The GUI will appear, displaying the first page of the PDF file. The user can select the color and thickness of the drawing/annotation using the right-click menu. The user can also switch between pages by clicking the “next” and “previous” buttons. To add a new annotation, the user can simply click and drag on the PDF render. To move an annotation, the user can click and drag it to a new location. To delete an annotation, the user can right-click on it and select “delete” from the menu.
